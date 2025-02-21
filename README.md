@@ -11,6 +11,7 @@ This project utilizes **Terragrunt** to manage **Terraform** configurations for 
 ----------
 
 ## Setup Environment
+Ensure that you have sudo or administrator privileges before setting up the environment.
 
 ### 1. Install Docker
 
@@ -51,7 +52,7 @@ minikube start
 ```
 
 ### 4. Install Ingress Controller
-
+Set up Ingress on Minikube with the NGINX Ingress Controller
 ```
 minikube addons enable ingress
 ```
@@ -104,22 +105,19 @@ sudo mv kubectl /usr/local/bin/kubectl
 
 1.  Download the desired version
 2.  Unpack it:
-
-<![if !supportLists]>`3.` <![endif]>`tar -zxvf helm-v3.0.0-linux-amd64.tar.gz`
-
+```
+tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
+```
 4.  Move the binary to a directory in **PATH**:
-
-<![if !supportLists]>`5.` <![endif]>`mv linux-amd64/helm /usr/local/bin/helm`
+```
+mv linux-amd64/helm /usr/local/bin/helm
+```
 
 -   **Version used in this project:** `3.12.3`
 
 ----------
 
 ## Folder Structure
-
-```
-.
-```
 
 ```
 ├── charts/                    # Helm charts for Kubernetes deployments
@@ -195,7 +193,7 @@ terragrunt run-all apply
 
 ### Minikube Tunnel
 
-tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP
+Tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP
 
 ```
 minikube tunnel
@@ -223,16 +221,6 @@ helm upgrade --install my-app charts/mychart -f charts/mychart/values.yaml
 
 ----------
 
-## Best Practices
-
--   Always run `terragrunt plan` before applying changes.
--   Maintain separate configurations for **staging** and **production** to prevent accidental changes.
--   Use `root.hcl` for defining shared settings across environments.
--   Keep the `charts/` directory up to date with versioned **Helm releases**.
--   Regularly back up `terraform.tfstate` files to prevent state corruption.
-
-----------
-
 ## Terragrunt and Terraform State Management
 
 -   In **production**, state files should be stored in **S3** or another **remote and secured location**.
@@ -243,3 +231,14 @@ More information can be found here.
 [https://terragrunt.gruntwork.io/docs/features/state-backend/](https://terragrunt.gruntwork.io/docs/features/state-backend/)
 
 ----------
+## Best Practices
+
+-   Always run `terragrunt plan` before applying changes.
+-   Maintain separate configurations for **staging** and **production** to prevent accidental changes.
+-   Use `root.hcl` for defining shared settings across environments.
+-   Keep the `charts/` directory up to date with versioned **Helm releases**.
+-   Regularly back up `terraform.tfstate` files to prevent state corruption.
+
+----------
+
+
