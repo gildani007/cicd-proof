@@ -191,7 +191,7 @@ remote_state {
 }
 ```
 
-For production environments, we recommend using remote state with locking:
+For production environments, it's recommended to use remote state with locking:
 
 ```hcl
 remote_state {
