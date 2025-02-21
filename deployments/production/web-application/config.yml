@@ -1,0 +1,18 @@
+release_name: "web-app"
+chart: "../../../charts/mychart"
+namespace: "basic"
+
+helm_values:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: p-myapp.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+
+
