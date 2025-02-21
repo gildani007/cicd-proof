@@ -49,6 +49,7 @@ This project utilizes **Terragrunt** to manage **Terraform** configurations for 
 
 The **Helm charts** are located under the `charts/` directory.
 The chart that being used in this project contains nginx deployment, service and ingress.
+The deployment contain livenessProbe and readinessProbe to prevent the service to send requests when pod can't repspond. 
 The charts are bening used by a shared module under component named helm_release.
 
 ----------
@@ -392,6 +393,16 @@ Open you browser and navigate to http://p-myapp.local
 Staging environment:
 
 Open you browser and navigate to http://s-myapp.local
+
+### Cleanup project
+```
+cd deployments/<environment-name>/web-application
+```
+
+
+```
+terragrunt destroy
+```
 
 ## Advanced Usage
 
