@@ -23,8 +23,6 @@ This project utilizes **Terragrunt** to manage **Terraform** configurations for 
 │   │   ├── config.yml         # Environment-specific configuration
 │   │   └── web-application/   # Terragrunt directory for production
 │   │       ├── config.yml
-│   │       ├── terraform.tfstate
-│   │       ├── terraform.tfstate.backup
 │   │       └── terragrunt.hcl
 │   ├── root.hcl               # Root-level Terragrunt configuration
 │   ├── staging/               # Staging environment
