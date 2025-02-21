@@ -1,7 +1,6 @@
 # cicd-proof
-Iac project with terragrunt terraform and helm
+Iac project with terragrunt terraform and helm for installing basic web application
 
-<![endif]-->
 
 # Project Documentation
 
@@ -125,144 +124,41 @@ sudo mv kubectl /usr/local/bin/kubectl
 ```
 ├── charts/                    # Helm charts for Kubernetes deployments
 │   ├── mychart/               # Active Helm chart
-```
-
-```
 │       ├── Chart.yaml         # Chart metadata
-```
-
-```
 │       ├── templates/         # Kubernetes manifests as Helm templates
-```
-
-```
 │       │   ├── deployment.yaml
-```
-
-```
 │       │   ├── ingress.yaml
-```
-
-```
 │       │   └── service.yaml
-```
-
-```
 │       └── values.yaml        # Configurable values for Helm chart
-```
-
-```
 │
-```
-
-```
 ├── deployments/               # Environment-specific configurations
-```
-
-```
 │   ├── config.yml             # Global deployment configuration
-```
-
-```
 │   ├── production/            # Production environment
-```
-
-```
 │   │   ├── config.yml         # Environment-specific configuration
-```
-
-```
 │   │   └── web-application/   # Terragrunt directory for production
-```
-
-```
 │   │       ├── config.yml
-```
-
-```
 │   │       ├── terraform.tfstate
-```
-
-```
 │   │       ├── terraform.tfstate.backup
-```
-
-```
 │   │       └── terragrunt.hcl
-```
-
-```
 │   ├── root.hcl               # Root-level Terragrunt configuration
-```
-
-```
 │   ├── staging/               # Staging environment
-```
-
-```
 │   │   ├── config.yml
-```
-
-```
 │   │   └── web-application/   # Terragrunt directory for staging
-```
-
-```
 │   │       ├── config.yml
-```
-
-```
 │   │       └── terragrunt.hcl
-```
-
-```
 │
-```
-
-```
 ├── modules/                   # Reusable Terraform modules
-```
-
-```
 │   ├── components/            # Specific components
-```
-
-```
 │   │   └── helm_release/      # Helm release management
-```
-
-```
 │   │       ├── main.tf
-```
-
-```
 │   │       ├── providers.tf
-```
-
-```
 │   │       └── variables.tf
-```
-
-```
 │   ├── stacks/                # Application stack definitions
-```
-
-```
 │   │   └── web-application/   # Web application stack
-```
-
-```
 │   │       ├── main.tf
-```
-
-```
 │   │       ├── providers.tf
-```
-
-```
 │   │       └── variables.tf
 ```
-
 ----------
 
 ## Running Terragrunt
