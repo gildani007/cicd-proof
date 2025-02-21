@@ -1,13 +1,229 @@
-# cicd-proof
-Iac project with terragrunt terraform and helm for installing basic web application
-
-
-# Project Documentation
+# Project Documentation of cicd-proof 
 
 ## Overview
 
 This project utilizes **Terragrunt** to manage **Terraform** configurations for deploying applications in multiple environments (**production** and **staging**). The folder structure is designed to separate environments and modularize Terraform configurations using the **Terragrunt** approach.
 
+
+## Folder Structure
+
+```
+├── charts/                    # Helm charts for Kubernetes deployments
+│   ├── mychart/               # Active Helm chart
+│       ├── Chart.yaml         # Chart metadata
+│       ├── templates/         # Kubernetes manifests as Helm templates
+│       │   ├── deployment.yaml
+│       │   ├── ingress.yaml
+│       │   └── service.yaml
+│       └── values.yaml        # Configurable values for Helm chart
+│
+├── deployments/               # Environment-specific configurations
+│   ├── config.yml             # Global deployment configuration
+│   ├── production/            # Production environment
+│   │   ├── config.yml         # Environment-specific configuration
+│   │   └── web-application/   # Terragrunt directory for production
+│   │       ├── config.yml
+│   │       ├── terraform.tfstate
+│   │       ├── terraform.tfstate.backup
+│   │       └── terragrunt.hcl
+│   ├── root.hcl               # Root-level Terragrunt configuration
+│   ├── staging/               # Staging environment
+│   │   ├── config.yml
+│   │   └── web-application/   # Terragrunt directory for staging
+│   │       ├── config.yml
+│   │       └── terragrunt.hcl
+│
+├── modules/                   # Reusable Terraform modules
+│   ├── components/            # Specific components
+│   │   └── helm_release/      # Helm release management
+│   │       ├── main.tf
+│   │       ├── providers.tf
+│   │       └── variables.tf
+│   ├── stacks/                # Application stack definitions
+│   │   └── web-application/   # Web application stack
+│   │       ├── main.tf
+│   │       ├── providers.tf
+│   │       └── variables.tf
+```
+----------
+
+### Charts
+
+The **Helm charts** are located under the `charts/` directory.
+The chart that being used in this project contains nginx deployment, service and ingress.
+The charts are bening used by a shared module under component named helm_release.
+
+----------
+
+### Deployments
+
+The **Deployments** are located in the `deployments/` directory, which contains subfolders for each environment.
+
+Each environment folder includes its respective Terragrunt deployment configuration.
+
+----------
+
+### modules
+
+The **modules** are located in the `modules/` directory, which contains 2 subfolders:
+1. **components** which contains the shared terraform modules, in our case helm_release.
+2. **stacks** which contains the terraform stacks which are being used by the terragrunt deployments.
+
+----------
+
+## Terragrunt Configuration Files
+
+### `terragrunt.hcl`
+
+Each deployment stack contains a minimal `terragrunt.hcl` file that includes the root configuration:
+
+```hcl
+include {
+  path = find_in_parent_folders("root.hcl")
+}
+```
+
+This approach centralizes configuration while allowing stack-specific overrides.
+
+### `config.yml`
+
+Stack-specific variables are stored in YAML files. For example, a web application configuration might contain:
+
+```yaml
+release_name: "web-app"
+chart: "../../../charts/mychart"
+namespace: "basic"
+
+helm_values:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: p-myapp.local
+        paths:
+          - path: /
+            pathType: Prefix
+```
+
+These variables are automatically loaded and passed to Terraform.
+
+### `root.hcl`
+
+The root configuration handles:
+
+1. Configuration merging
+2. Remote state management
+3. Module sourcing
+
+## Key Components
+
+### 1. Configuration Merging
+
+Terragrunt aggregates configuration from all applicable `config.yml` files in the directory hierarchy:
+
+```hcl
+locals {
+  # Get the parent directory where Terragrunt is executed
+  root_deployments_dir = get_parent_terragrunt_dir()
+
+  # Get the relative path between the current terragrunt.hcl file and root
+  relative_deployment_path = path_relative_to_include()
+  
+  # Split the path into components
+  deployment_path_components = compact(split("/", local.relative_deployment_path))
+
+  # Extract the stack name (e.g., `production/web-application` → `web-application`)
+  stack = local.deployment_path_components[1]
+
+  # Generate a list of all possible configuration directories in the hierarchy
+  possible_config_dirs = [
+    for i in range(0, length(local.deployment_path_components) + 1) :
+    join("/", concat(
+      [local.root_deployments_dir],
+      slice(local.deployment_path_components, 0, i)
+    ))
+  ]
+
+  # Generate paths for possible YAML config files
+  possible_config_paths = flatten([
+    for dir in local.possible_config_dirs : [
+      "${dir}/config.yml",
+      "${dir}/config.yaml"
+    ]
+  ])
+
+  # Load and decode all existing YAML configurations
+  file_configs = [
+    for path in local.possible_config_paths :
+    yamldecode(file(path)) if fileexists(path)
+  ]
+
+  # Merge configurations, with deeper (more specific) configs overriding higher ones
+  merged_config = merge(local.file_configs...)
+}
+
+# Pass the merged configuration to Terraform
+inputs = local.merged_config
+```
+
+This configuration cascade enables:
+- Environment-wide settings at higher levels
+- Stack-specific overrides at lower levels
+- DRY (Don't Repeat Yourself) infrastructure configuration
+
+### 2. Remote State Management
+
+For development, we use local state files:
+
+```hcl
+remote_state {
+  backend = "local"
+  config = {
+    path = "${get_parent_terragrunt_dir()}/${path_relative_to_include()}/terraform.tfstate"
+  }
+
+  # Auto-generate a backend.tf file
+  generate = {
+    path      = "backend.tf"
+    if_exists = "overwrite"
+  }
+}
+```
+
+For production environments, we recommend using remote state with locking:
+
+```hcl
+remote_state {
+  backend = "s3"
+  generate = {
+    path      = "backend.tf"
+    if_exists = "overwrite"
+  }
+  config = {
+    bucket  = "terraform-states-us-east-1-385940"
+    region  = "us-east-1"
+    encrypt = true
+
+    dynamodb_table = "terraform-states-us-east-1-385940-locks"
+    key            = "${dirname(local.relative_deployment_path)}/${local.stack}.tfstate"
+
+    # IAM Role Configuration
+    role_arn = "arn:aws:iam::xxxxxxxxxxx:role/cicd_proof_role"
+  }
+}
+```
+
+### 3. Module Sourcing
+
+Terragrunt automatically locates the correct Terraform modules:
+
+```hcl
+terraform {
+  source = "${local.root_deployments_dir}/..//modules/stacks/${local.stack}"
+}
+```
 ----------
 
 ## Setup Environment
@@ -117,47 +333,6 @@ mv linux-amd64/helm /usr/local/bin/helm
 
 ----------
 
-## Folder Structure
-
-```
-├── charts/                    # Helm charts for Kubernetes deployments
-│   ├── mychart/               # Active Helm chart
-│       ├── Chart.yaml         # Chart metadata
-│       ├── templates/         # Kubernetes manifests as Helm templates
-│       │   ├── deployment.yaml
-│       │   ├── ingress.yaml
-│       │   └── service.yaml
-│       └── values.yaml        # Configurable values for Helm chart
-│
-├── deployments/               # Environment-specific configurations
-│   ├── config.yml             # Global deployment configuration
-│   ├── production/            # Production environment
-│   │   ├── config.yml         # Environment-specific configuration
-│   │   └── web-application/   # Terragrunt directory for production
-│   │       ├── config.yml
-│   │       ├── terraform.tfstate
-│   │       ├── terraform.tfstate.backup
-│   │       └── terragrunt.hcl
-│   ├── root.hcl               # Root-level Terragrunt configuration
-│   ├── staging/               # Staging environment
-│   │   ├── config.yml
-│   │   └── web-application/   # Terragrunt directory for staging
-│   │       ├── config.yml
-│   │       └── terragrunt.hcl
-│
-├── modules/                   # Reusable Terraform modules
-│   ├── components/            # Specific components
-│   │   └── helm_release/      # Helm release management
-│   │       ├── main.tf
-│   │       ├── providers.tf
-│   │       └── variables.tf
-│   ├── stacks/                # Application stack definitions
-│   │   └── web-application/   # Web application stack
-│   │       ├── main.tf
-│   │       ├── providers.tf
-│   │       └── variables.tf
-```
-----------
 
 ## Running Terragrunt
 
@@ -191,15 +366,8 @@ terragrunt run-all plan
 terragrunt run-all apply
 ```
 
-### Minikube Tunnel
-
-Tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP
-
-```
-minikube tunnel
-```
-
-### Add the DNS Record
+### DNS Record
+Add DNS record to your local hosts file
 
 ```
 echo "127.0.0.1 s-myapp.local" | sudo tee -a /etc/hosts
@@ -209,36 +377,45 @@ echo "127.0.0.1 s-myapp.local" | sudo tee -a /etc/hosts
 echo "127.0.0.1 p-myapp.local" | sudo tee -a /etc/hosts
 ```
 
-----------
+### Minikube Tunnel
 
-## Helm Deployment
-
-The **Helm charts** are located under the `charts/` directory. To manually deploy a Helm release, run:
+Tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP
 
 ```
-helm upgrade --install my-app charts/mychart -f charts/mychart/values.yaml
+minikube tunnel
 ```
 
-----------
+### Test Access
 
-## Terragrunt and Terraform State Management
+Production environment:
 
--   In **production**, state files should be stored in **S3** or another **remote and secured location**.
--   Use a database like **DynamoDB** to lock the state file during changes to avoid conflicts.
+Open you browser and navigate to http://p-myapp.local
 
-More information can be found here.
+Staging environment:
 
-[https://terragrunt.gruntwork.io/docs/features/state-backend/](https://terragrunt.gruntwork.io/docs/features/state-backend/)
+Open you browser and navigate to http://s-myapp.local
 
-----------
+## Advanced Usage
+
+### Adding New Environments
+
+To add a new environment (e.g., staging, production):
+1. Create a new directory under `deployments/`
+2. Add environment-specific `config.yml` file with common variables
+3. Create stack subdirectories as needed
+
+### Adding New Stacks
+
+To add a new stack type:
+1. Create the module under `modules/stacks/[new-stack]`
+2. Create deployment directories as needed
+3. Ensure `terragrunt.hcl` files reference the root configuration
+
 ## Best Practices
 
--   Always run `terragrunt plan` before applying changes.
--   Maintain separate configurations for **staging** and **production** to prevent accidental changes.
--   Use `root.hcl` for defining shared settings across environments.
--   Keep the `charts/` directory up to date with versioned **Helm releases**.
--   Regularly back up `terraform.tfstate` files to prevent state corruption.
-
-----------
+1. **Environment Variables**: Define environment-wide settings (like AWS region) in environment-level `config.yml` files.
+2. **State Management**: Use remote state backends with locking for production environments.
+3. **Module Versioning**: Consider pinning module versions in production deployments.
+4. **Variable Documentation**: Document expected variables in each module's README.
 
 
