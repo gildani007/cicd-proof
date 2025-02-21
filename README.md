@@ -124,8 +124,6 @@ sudo mv kubectl /usr/local/bin/kubectl
 
 ```
 ├── charts/                    # Helm charts for Kubernetes deployments
-```
-```
 │   ├── mychart/               # Active Helm chart
 ```
 
