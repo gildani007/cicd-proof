@@ -16,14 +16,6 @@ variable "chart" {
   default     = "unset"
 }
 
-variable "values" {
-  type    = map(any)
-  default = {
-    key1 = "default_value1"
-    key2 = "default_value2"
-  }
-}
-
 variable "helm_values" {
   type        = any
   description = "Helm values as a map"

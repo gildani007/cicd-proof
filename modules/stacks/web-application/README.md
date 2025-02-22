@@ -32,7 +32,6 @@
 | <a name="input_helm_values"></a> [helm\_values](#input\_helm\_values) | Helm values as a map | `any` | n/a | yes |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | The namespace for the Helm release | `string` | `"unset"` | no |
 | <a name="input_release_name"></a> [release\_name](#input\_release\_name) | The Helm release name | `string` | `"unset"` | no |
-| <a name="input_values"></a> [values](#input\_values) | n/a | `map(any)` | <pre>{<br/>  "key1": "default_value1",<br/>  "key2": "default_value2"<br/>}</pre> | no |
 
 ## Outputs
 

@@ -1,0 +1,51 @@
+# values.yaml
+replicaCount: 1
+
+service:
+  type: ClusterIP  # Default to ClusterIP for use with ingress
+  port: 80
+  # nodePort is now optional and only used when type is NodePort
+  nodePort: null
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+topologyConstraint:
+  enabled: false
+  
+container:
+  image: nginx:latest
+  port: 80
+
+probes:
+  liveness:
+    path: "/"
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readiness:
+    path: "/"
+    initialDelaySeconds: 3
+    periodSeconds: 5
+  
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+

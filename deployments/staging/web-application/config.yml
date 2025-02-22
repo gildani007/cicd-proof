@@ -1,5 +1,5 @@
 release_name: "web-app"
-chart: "../../../charts/mychart"
+chart: "../../../charts/nginx_basic"
 namespace: "basic"
 
 helm_values:
