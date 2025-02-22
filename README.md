@@ -382,7 +382,7 @@ terragrunt run-all apply
 
 ### Check the status
 
-Check that the pods are running in basic-staging and basic production namespace.
+Check that the pods are running in basic-staging and basic-production namespace.
 Note: In production environment use **kubectl get pods -A -o wide** to make sure that the pods are distributed on the nodes.
 ```
 kubectl get pods -A
