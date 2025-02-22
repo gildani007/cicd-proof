@@ -90,7 +90,7 @@ Stack-specific variables are stored in YAML files. For example, a web applicatio
 
 ```yaml
 release_name: "web-app"
-chart: "../../../charts/mychart"
+chart: "../../../charts/nginx_basic"
 namespace: "basic"
 
 helm_values:
@@ -104,6 +104,11 @@ helm_values:
         paths:
           - path: /
             pathType: Prefix
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
 ```
 
 These variables are automatically loaded and passed to Terraform.
@@ -278,7 +283,13 @@ Enable **DNS Addon**:
 minikube addons enable ingress-dns
 ```
 
-### 5. Install Kubectl
+### 5. Install Metrics Server Controller
+Set up Metrics on Minikube to expose cpu metrics for HPA
+```
+minikube addons enable metrics-server
+```
+
+### 6. Install Kubectl
 
 For **macOS Apple Silicon**:
 
@@ -306,17 +317,17 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin/kubectl
 ```
 
-### 6. Install Terragrunt
+### 7. Install Terragrunt
 
 -   Install from: [Terragrunt Installation](https://terragrunt.gruntwork.io/docs/getting-started/install/)
 -   **Version used in this project:** `0.53.2`
 
-### 7. Install Terraform
+### 8. Install Terraform
 
 -   Install from: [Terraform Installation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 -   **Version used in this project:** `1.6.6`
 
-### 8. Install Helm
+### 9. Install Helm
 
 1.  Download the desired version
 2.  Unpack it:
