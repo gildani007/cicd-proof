@@ -380,6 +380,24 @@ terragrunt run-all plan
 terragrunt run-all apply
 ```
 
+### Check the status
+
+Check that the pods are running in basic-staging and basic production namespace.
+Note: In production environment use **kubectl get pods -A -o wide** to make sure that the pods are distributed on the nodes.
+```
+kubectl get pods -A
+```
+
+Check that the HPA is running and the traget is correct
+```
+kubectl get hpa -n basic-production
+```
+
+Check that 2 ingress are running with the right host.
+```
+kubectl get ingress -A
+```
+
 ### DNS Record
 Add DNS record to your local hosts file
 
@@ -393,11 +411,12 @@ echo "127.0.0.1 p-myapp.local" | sudo tee -a /etc/hosts
 
 ### Minikube Tunnel
 
-Tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP
+Tunnel creates a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP.
 
 ```
 minikube tunnel
 ```
+Please do not close this terminal as this process must stay alive for the tunnel to be accessible.
 
 ### Test Access
 
@@ -419,6 +438,12 @@ cd deployments/<environment-name>/web-application
 terragrunt destroy
 ```
 
+```
+minikube stop
+```
+
+Close the terminal of the minikube tunnel.
+
 ## Advanced Usage
 
 ### Adding New Environments
@@ -439,7 +464,8 @@ To add a new stack type:
 
 1. **Environment Variables**: Define environment-wide settings (like AWS region) in environment-level `config.yml` files.
 2. **State Management**: Use remote state backends with locking for production environments.
-3. **Module Versioning**: Consider pinning module versions in production deployments.
-4. **Variable Documentation**: Document expected variables in each module's README.
+3. **Autoscaling**: Consider using KEDA and prometheus with the metric **nginx_service_requests_total** instead of HPA to monitor for production environments.
+4. **Module Versioning**: Consider pinning module versions in production deployments.
+5. **Variable Documentation**: Document expected variables in each module's README.
 
 
