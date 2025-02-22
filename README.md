@@ -9,10 +9,11 @@ This project utilizes **Terragrunt** to manage **Terraform** configurations for 
 
 ```
 ├── charts/                    # Helm charts for Kubernetes deployments
-│   ├── mychart/               # Active Helm chart
+│   ├── nginx_basic/               # Active Helm chart
 │       ├── Chart.yaml         # Chart metadata
 │       ├── templates/         # Kubernetes manifests as Helm templates
 │       │   ├── deployment.yaml
+│       │   ├── hpa.yaml
 │       │   ├── ingress.yaml
 │       │   └── service.yaml
 │       └── values.yaml        # Configurable values for Helm chart
@@ -47,10 +48,13 @@ This project utilizes **Terragrunt** to manage **Terraform** configurations for 
 
 ### Charts
 
-The **Helm charts** are located under the `charts/` directory.
-The chart that being used in this project contains nginx deployment, service and ingress.
-The deployment contain livenessProbe and readinessProbe to prevent the service to send requests when pod can't repspond. 
-The charts are bening used by a shared module under component named helm_release.
+The **Helm charts** are located under the charts/ directory.
+The chart used in this project deploys an NGINX-based web application and includes the following components:
+1. **Deployment** – Contains **livenessProbe** and **readinessProbe** to ensure the service does not send requests to a pod that cannot respond. It also includes **topologySpreadConstraints** to distribute pods across different nodes, preventing them from running on the same node.
+2. **Service** – Configurable to work with either **NodePort** or **ClusterIP**.
+3. **Ingress** – Exposes the application via an HTTP endpoint.
+4. **HPA (Horizontal Pod Autoscaler)** – Enables CPU-based autoscaling to dynamically adjust the number of pods based on workload demand.
+These Helm charts are deployed by a shared module within the helm_release component.
 
 ----------
 
