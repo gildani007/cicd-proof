@@ -276,7 +276,7 @@ minikube start
 ```
 
 ### 4. Install Ingress Controller
-Set up Ingress on Minikube with the NGINX Ingress Controller
+Set up Ingress on Minikube with the NGINX Ingress Controller.
 ```
 minikube addons enable ingress
 ```
@@ -288,7 +288,7 @@ minikube addons enable ingress-dns
 ```
 
 ### 5. Install Metrics Server Controller
-Set up Metrics on Minikube to expose cpu metrics for HPA
+Set up Metrics on Minikube to expose cpu metrics for HPA.
 ```
 minikube addons enable metrics-server
 ```
@@ -333,7 +333,7 @@ sudo mv kubectl /usr/local/bin/kubectl
 
 ### 9. Install Helm
 
-1.  Download the desired version
+1.  Download the desired version.
 2.  Unpack it:
 ```
 tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
@@ -388,7 +388,7 @@ Note: In production environment use **kubectl get pods -A -o wide** to make sure
 kubectl get pods -A
 ```
 
-Check that the HPA is running and the traget is correct
+Check that the HPA is running and the traget is correct.
 ```
 kubectl get hpa -n basic-production
 ```
@@ -399,7 +399,7 @@ kubectl get ingress -A
 ```
 
 ### DNS Record
-Add DNS record to your local hosts file
+Add DNS record to your local hosts file.
 
 ```
 echo "127.0.0.1 s-myapp.local" | sudo tee -a /etc/hosts
@@ -449,16 +449,16 @@ Close the terminal of the minikube tunnel.
 ### Adding New Environments
 
 To add a new environment (e.g., staging, production):
-1. Create a new directory under `deployments/`
-2. Add environment-specific `config.yml` file with common variables
-3. Create stack subdirectories as needed
+1. Create a new directory under `deployments/`.
+2. Add environment-specific `config.yml` file with common variables.
+3. Create stack subdirectories as needed.
 
 ### Adding New Stacks
 
 To add a new stack type:
-1. Create the module under `modules/stacks/[new-stack]`
-2. Create deployment directories as needed
-3. Ensure `terragrunt.hcl` files reference the root configuration
+1. Create the module under `modules/stacks/[new-stack]`.
+2. Create deployment directories as needed.
+3. Ensure `terragrunt.hcl` files reference the root configuration.
 
 ## Best Practices
 
