@@ -23,9 +23,9 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_chart"></a> [chart](#input\_chart) | The Helm chart path | `string` | `"unset"` | no |
-| <a name="input_namespace"></a> [namespace](#input\_namespace) | The namespace for the Helm release | `string` | `"unset"` | no |
-| <a name="input_release_name"></a> [release\_name](#input\_release\_name) | The Helm release name | `string` | `"unset"` | no |
+| <a name="input_chart"></a> [chart](#input\_chart) | The Helm chart path | `string` | n/a | yes |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | The namespace for the Helm release | `string` | n/a | yes |
+| <a name="input_release_name"></a> [release\_name](#input\_release\_name) | The Helm release name | `string` | n/a | yes |
 | <a name="input_values"></a> [values](#input\_values) | Helm values as a map | `any` | n/a | yes |
 
 ## Outputs
