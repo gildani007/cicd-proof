@@ -464,8 +464,6 @@ To add a new stack type:
 
 1. **Environment Variables**: Define environment-wide settings (like AWS region) in environment-level `config.yml` files.
 2. **State Management**: Use remote state backends with locking for production environments.
-3. **Autoscaling**: Consider using KEDA and prometheus with the metric **nginx_service_requests_total** instead of HPA to monitor for production environments.
+3. **Autoscaling**: Consider using KEDA and Prometheus with the metric **nginx_service_requests_total** instead of HPA for monitoring in production environments.
 4. **Module Versioning**: Consider pinning module versions in production deployments.
 5. **Variable Documentation**: Document expected variables in each module's README.
-
-
