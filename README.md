@@ -52,7 +52,7 @@ The **Helm charts** are located under the charts/ directory.
 The chart used in this project deploys an NGINX-based web application and includes the following components:
 1. **Deployment** – Contains **livenessProbe** and **readinessProbe** to ensure the service does not send requests to a pod that cannot respond. It also includes **topologySpreadConstraints** to distribute pods across different nodes, preventing them from running on the same node.
 2. **Service** – Configurable to work with either **NodePort** or **ClusterIP**.
-3. **Ingress** – Exposes the application via an HTTP endpoint.
+3. **Ingress** – Exposes the application via an HTTP endpoint. Use **round_robin** for the load balancing and healthcheck.
 4. **HPA (Horizontal Pod Autoscaler)** – Enables CPU-based autoscaling to dynamically adjust the number of pods based on workload demand.
 These Helm charts are deployed by a shared module within the helm_release component.
 
@@ -103,8 +103,20 @@ helm_values:
   ingress:
     enabled: true
     className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/load-balance: "round_robin"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+      # Health check annotations
+      nginx.ingress.kubernetes.io/healthcheck-path: /
+      nginx.ingress.kubernetes.io/healthcheck-interval: "10s"
+      nginx.ingress.kubernetes.io/healthcheck-timeout: "5s"
+      nginx.ingress.kubernetes.io/healthy-threshold: "3"
+      nginx.ingress.kubernetes.io/unhealthy-threshold: "3"
     hosts:
-      - host: p-myapp.local
+      - host: "p-myapp.local"
         paths:
           - path: /
             pathType: Prefix

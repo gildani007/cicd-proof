@@ -6,10 +6,25 @@ helm_values:
   service:
     type: ClusterIP
   ingress:
-    enabled: true
+    enabled: true  # Enable the ingress
     className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/load-balance: "round_robin"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+      # Enable session persistence if needed
+      # nginx.ingress.kubernetes.io/affinity: "cookie"
+      # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+      # Health check annotations
+      nginx.ingress.kubernetes.io/healthcheck-path: /
+      nginx.ingress.kubernetes.io/healthcheck-interval: "10s"
+      nginx.ingress.kubernetes.io/healthcheck-timeout: "5s"
+      nginx.ingress.kubernetes.io/healthy-threshold: "3"
+      nginx.ingress.kubernetes.io/unhealthy-threshold: "3"
     hosts:
-      - host: p-myapp.local
+      - host: "p-myapp.local"  # Change this to your desired local domain
         paths:
           - path: /
             pathType: Prefix
