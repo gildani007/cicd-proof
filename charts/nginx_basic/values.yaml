@@ -1,25 +1,50 @@
 # values.yaml
-replicaCount: 3
+replicaCount: 1
 
 container:
+  # Container image for the application
   image: nginx:alpine
+  # Port on which the container listens
   port: 80
+  # Custom command to run inside the container
   command: ["/bin/sh"]
+  # Arguments passed to the command (injects configuration script)
   args: ["/config/inject.sh"]
 
+probes:
+  liveness:
+    path: "/health"  # Liveness probe endpoint
+    initialDelaySeconds: 5  # Delay before first check
+    periodSeconds: 10  # Check interval
+  readiness:
+    path: "/health"  # Readiness probe endpoint
+    initialDelaySeconds: 3  # Delay before first check
+    periodSeconds: 5  # Check interval
+
 service:
+  # Service type (ClusterIP means internal-only access)
   type: ClusterIP
+  # Port exposed by the service
   port: 80
+  # NodePort is not used (only relevant for NodePort service type)
+  nodePort: null
+
 
 ingress:
-  enabled: true
-  className: "nginx"
+  enabled: true  # Enable Ingress for external access
+  className: "nginx"  # Ingress class name (must match the installed Ingress controller)
   hosts:
-    - host: "pods.local"
+    - host: "pods.local"  # Hostname for the ingress
       paths:
-        - path: /
-          pathType: Prefix
+        - path: /  # Root path
+          pathType: Prefix  # Matches all requests starting with '/'
 
+topologyConstraint:
+  enabled: false  # Disable topology constraints
 
-  
+hpa:
+  enabled: false  # Disable Horizontal Pod Autoscaler
+
+configMap:
+  enabled: false  # Disable configMap
 
