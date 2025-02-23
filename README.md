@@ -61,8 +61,8 @@ These Helm charts are deployed by a shared module within the helm_release compon
 ### Deployments
 
 The **Deployments** are located in the `deployments/` directory, which contains subfolders for each environment.
-
 Each environment folder includes its respective Terragrunt deployment configuration.
+In our project we used the config.yaml to inject the webpage using configmap for nginx to present the pod name, IP address and the time.
 
 ----------
 
@@ -492,11 +492,11 @@ kubectl get ingress -A
 Add DNS record to your local hosts file.
 
 ```
-echo "127.0.0.1 s-myapp.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 s-pods.local" | sudo tee -a /etc/hosts
 ```
 
 ```
-echo "127.0.0.1 p-myapp.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 p-pods.local" | sudo tee -a /etc/hosts
 ```
 
 ### Minikube Tunnel
@@ -512,11 +512,11 @@ Please do not close this terminal as this process must stay alive for the tunnel
 
 Production environment:
 
-Open you browser and navigate to http://p-myapp.local
+Open you browser and navigate to http://p-pods.local/
 
 Staging environment:
 
-Open you browser and navigate to http://s-myapp.local
+Open you browser and navigate to http://s-pods.local/
 
 ### Cleanup project
 ```
