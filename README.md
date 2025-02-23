@@ -424,7 +424,7 @@ sudo mv kubectl /usr/local/bin/kubectl
 -   **Version used in this project:** `1.6.6`
 
 ### 9. Install Helm
-
+For troubleshooting we should install helm locally.
 1.  Download the [desired version](https://github.com/helm/helm/releases).
 2.  Unpack it:
 ```
