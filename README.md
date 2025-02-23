@@ -425,7 +425,7 @@ sudo mv kubectl /usr/local/bin/kubectl
 
 ### 9. Install Helm
 
-1.  Download the desired version.
+1.  Download the [desired version](https://github.com/helm/helm/releases).
 2.  Unpack it:
 ```
 tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
