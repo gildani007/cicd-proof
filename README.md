@@ -56,7 +56,8 @@ The chart used in this project deploys an NGINX-based web application and includ
 3. **Ingress** – Exposes the application via an HTTP endpoint. Use **round_robin** for the load balancing and healthcheck.
 4. **HPA (Horizontal Pod Autoscaler)** – Enables CPU-based autoscaling to dynamically adjust the number of pods based on workload demand.
 5. **ConfigMap** - Contains the nginx configuration, and the inject.sh script that creates the index.html.
-These Helm charts are deployed by a shared module within the helm_release component.
+
+The Helm charts are deployed by a shared module within the helm_release component.
 
 ----------
 
