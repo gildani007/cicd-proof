@@ -546,12 +546,19 @@ To add a new environment (e.g., staging, production):
 2. Add environment-specific `config.yml` file with common variables.
 3. Create stack subdirectories as needed.
 
+### Adding New Deployments
+
+To add a new deployment:
+1. Create the deployment under `deployments/<Environment>/[new-deployment]`.
+2. Add deployment-specific `config.yml` file with common variables.
+3. Ensure `terragrunt.hcl` files reference the root configuration.
+
 ### Adding New Stacks
 
-To add a new stack type:
+To add a new stack:
 1. Create the module under `modules/stacks/[new-stack]`.
 2. Create deployment directories as needed.
-3. Ensure `terragrunt.hcl` files reference the root configuration.
+
 
 ## Best Practices
 
