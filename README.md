@@ -539,13 +539,6 @@ Close the terminal of the minikube tunnel.
 
 ## Advanced Usage
 
-### Adding New Environments
-
-To add a new environment (e.g., staging, production):
-1. Create a new directory under `deployments/`.
-2. Add environment-specific `config.yml` file with common variables.
-3. Create stack subdirectories as needed.
-
 ### Adding New Deployments
 
 To add a new deployment:
@@ -559,6 +552,12 @@ To add a new stack:
 1. Create the module under `modules/stacks/[new-stack]`.
 2. Create deployment directories as needed.
 
+### Adding New Environments
+
+To add a new environment (e.g., staging, production):
+1. Create a new directory under `deployments/`.
+2. Add environment-specific `config.yml` file with common variables.
+3. Create stack subdirectories as needed.
 
 ## Best Practices
 
