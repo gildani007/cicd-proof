@@ -90,7 +90,7 @@ This approach centralizes configuration while allowing stack-specific overrides.
 
 ### `config.yml`
 
-Stack-specific variables are stored in YAML files. For example, a web application configuration might contain:
+Stack-specific variables are stored in YAML files. For example, a web application for production configuration might contain:
 
 ```yaml
 release_name: "web-app"
@@ -98,10 +98,29 @@ chart: "../../../charts/nginx_basic"
 namespace: "basic"
 
 helm_values:
+  replicaCount: 3
+
+  container:
+    image: nginx:alpine
+    port: 80
+    command: ["/bin/sh"]
+    args: ["/config/inject.sh"]
+
   service:
     type: ClusterIP
+    port: 80
+    nodePort: null
+
+  resources: 
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
   ingress:
-    enabled: true
+    enabled: true 
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /
@@ -109,22 +128,81 @@ helm_values:
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
-      # Health check annotations
       nginx.ingress.kubernetes.io/healthcheck-path: /
       nginx.ingress.kubernetes.io/healthcheck-interval: "10s"
       nginx.ingress.kubernetes.io/healthcheck-timeout: "5s"
       nginx.ingress.kubernetes.io/healthy-threshold: "3"
       nginx.ingress.kubernetes.io/unhealthy-threshold: "3"
     hosts:
-      - host: "p-myapp.local"
+      - host: "p-pods.local"
         paths:
           - path: /
             pathType: Prefix
+
+  topologyConstraint:
+    enabled: true 
+
   hpa:
     enabled: true
     minReplicas: 2
     maxReplicas: 8
     targetCPUUtilizationPercentage: 70
+
+  probes:
+    liveness:
+      path: "/health"
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    readiness:
+      path: "/health"
+      initialDelaySeconds: 3
+      periodSeconds: 5
+
+  configMap:
+    enabled: true
+    data:
+      inject.sh: |
+        #!/bin/sh
+        POD_NAME=$HOSTNAME
+        POD_IP=$(hostname -i)
+        cat > /usr/share/nginx/html/index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pod Info</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .info { background: #f0f0f0; padding: 20px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="info">
+                <h1>Pod Information</h1>
+                <p><strong>Pod Name:</strong> $POD_NAME</p>
+                <p><strong>Pod IP:</strong> $POD_IP</p>
+                <p><strong>Time:</strong> $(date)</p>
+            </div>
+        </body>
+        </html>
+        EOF
+        nginx -g "daemon off;"
+      
+      default.conf: |
+        server {
+            listen       80;
+            server_name  localhost;
+
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+            }
+        }
+
 ```
 
 These variables are automatically loaded and passed to Terraform.

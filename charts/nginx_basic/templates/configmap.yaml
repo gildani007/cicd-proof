@@ -1,0 +1,10 @@
+# templates/configmap.yaml
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  {{- toYaml .Values.configMap.data | nindent 2 }}
+{{- end }}

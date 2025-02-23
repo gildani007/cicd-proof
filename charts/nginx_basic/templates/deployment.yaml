@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  {{- if not .Values.hpa.enabled }}  # Remove replicas if HPA is enabled
+  {{- if not .Values.hpa.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
@@ -15,18 +15,27 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ .Release.Name }}-config
       containers:
         - name: app-container
           image: {{ .Values.container.image }}
+          command: {{ .Values.container.command }}
+          args: {{ .Values.container.args }}
           ports:
             - containerPort: {{ .Values.container.port }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /config
+              readOnly: true
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
           resources:
-            requests:
-              cpu: {{ .Values.resources.requests.cpu }}
-              memory: {{ .Values.resources.requests.memory }}
-            limits:
-              cpu: {{ .Values.resources.limits.cpu }}
-              memory: {{ .Values.resources.limits.memory }}
+            {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}

@@ -1,38 +1,132 @@
+# Helm release name
 release_name: "web-app"
+
+# Path to the Helm chart being used
 chart: "../../../charts/nginx_basic"
+
+# Namespace prefix where the application will be deployed, environment will be added such as basic-staging
 namespace: "basic"
 
 helm_values:
+  # Number of replicas for the deployment
+  replicaCount: 3
+
+  container:
+    # Container image for the application
+    image: nginx:alpine
+    # Port on which the container listens
+    port: 80
+    # Custom command to run inside the container
+    command: ["/bin/sh"]
+    # Arguments passed to the command (injects configuration script)
+    args: ["/config/inject.sh"]
+
   service:
+    # Service type (ClusterIP means internal-only access)
     type: ClusterIP
+    # Port exposed by the service
+    port: 80
+    # NodePort is not used (only relevant for NodePort service type)
+    nodePort: null
+
+  resources:
+    # Resource requests define guaranteed CPU/memory for the pod
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    # Limits define the maximum CPU/memory the pod can use
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
   ingress:
-    enabled: true  # Enable the ingress
-    className: "nginx"
+    enabled: true  # Enable Ingress for external access
+    className: "nginx"  # Ingress class name (must match the installed Ingress controller)
     annotations:
+      # Rewrite target to match the root
       nginx.ingress.kubernetes.io/rewrite-target: /
+      # Load balancing strategy
       nginx.ingress.kubernetes.io/load-balance: "round_robin"
+      # Timeout settings for proxy connections
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
-      # Enable session persistence if needed
-      # nginx.ingress.kubernetes.io/affinity: "cookie"
-      # nginx.ingress.kubernetes.io/session-cookie-name: "route"
-      # Health check annotations
+      # Health check settings for Ingress
       nginx.ingress.kubernetes.io/healthcheck-path: /
       nginx.ingress.kubernetes.io/healthcheck-interval: "10s"
       nginx.ingress.kubernetes.io/healthcheck-timeout: "5s"
       nginx.ingress.kubernetes.io/healthy-threshold: "3"
       nginx.ingress.kubernetes.io/unhealthy-threshold: "3"
     hosts:
-      - host: "p-myapp.local"  # Change this to your desired local domain
+      - host: "p-pods.local"  # Hostname for the ingress
         paths:
-          - path: /
-            pathType: Prefix
+          - path: /  # Root path
+            pathType: Prefix  # Matches all requests starting with '/'
+
+  topologyConstraint:
+    enabled: true  # Enable topology constraints for scheduling pods
+
   hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 8
-    targetCPUUtilizationPercentage: 70
+    enabled: true  # Enable Horizontal Pod Autoscaler (HPA)
+    minReplicas: 2  # Minimum number of replicas
+    maxReplicas: 8  # Maximum number of replicas
+    targetCPUUtilizationPercentage: 70  # CPU threshold for scaling
 
+  probes:
+    # Liveness probe checks if the container is still running
+    liveness:
+      path: "/health"  # Endpoint for the liveness check
+      initialDelaySeconds: 5  # Delay before first check
+      periodSeconds: 10  # Interval between checks
+    # Readiness probe checks if the pod is ready to receive traffic
+    readiness:
+      path: "/health"  # Endpoint for readiness check
+      initialDelaySeconds: 3  # Delay before first check
+      periodSeconds: 5  # Interval between checks
 
+  configMap:
+    enabled: true  # Enable ConfigMap creation
+    data:
+      # Script that injects pod information into an HTML file
+      inject.sh: |
+        #!/bin/sh
+        POD_NAME=$HOSTNAME
+        POD_IP=$(hostname -i)
+        cat > /usr/share/nginx/html/index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pod Info</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .info { background: #f0f0f0; padding: 20px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="info">
+                <h1>Pod Information</h1>
+                <p><strong>Pod Name:</strong> $POD_NAME</p>
+                <p><strong>Pod IP:</strong> $POD_IP</p>
+                <p><strong>Time:</strong> $(date)</p>
+            </div>
+        </body>
+        </html>
+        EOF
+        nginx -g "daemon off;"
+      
+      # Nginx default configuration file
+      default.conf: |
+        server {
+            listen       80;
+            server_name  localhost;
 
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+            }
+        }

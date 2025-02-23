@@ -1,15 +1,112 @@
+# Helm release name
 release_name: "web-app"
+
+# Path to the Helm chart being used
 chart: "../../../charts/nginx_basic"
+
+# Namespace prefix where the application will be deployed, environment will be added such as basic-staging
 namespace: "basic"
 
 helm_values:
+  # Number of replicas for the deployment
+  replicaCount: 1
+
+  container:
+    image: nginx:alpine  # Base image for the container
+    port: 80  # Container port to expose
+    command: ["/bin/sh"]  # Command to execute inside the container
+    args: ["/config/inject.sh"]  # Arguments for the command
+
   service:
-    type: ClusterIP
+    type: ClusterIP  # Service type (internal only)
+    port: 80  # Port to expose the service
+    nodePort: null  # Not applicable for ClusterIP
+
+  resources:
+    requests:
+      cpu: "100m"  # Requested CPU resources
+      memory: "128Mi"  # Requested memory resources
+    limits:
+      cpu: "500m"  # Maximum allowed CPU usage
+      memory: "256Mi"  # Maximum allowed memory usage
+
   ingress:
-    enabled: true
-    className: "nginx"
+    enabled: true  # Enable the ingress
+    className: "nginx"  # Use Nginx Ingress Controller
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/load-balance: "round_robin"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+      nginx.ingress.kubernetes.io/healthcheck-path: /
+      nginx.ingress.kubernetes.io/healthcheck-interval: "10s"
+      nginx.ingress.kubernetes.io/healthcheck-timeout: "5s"
+      nginx.ingress.kubernetes.io/healthy-threshold: "3"
+      nginx.ingress.kubernetes.io/unhealthy-threshold: "3"
     hosts:
-      - host: s-myapp.local
+      - host: "s-pods.local"  # Hostname for the ingress
         paths:
           - path: /
-            pathType: Prefix
+            pathType: Prefix  # Path type for ingress
+
+  topologyConstraint:
+    enabled: false  # Disable topology constraints
+
+  hpa:
+    enabled: false  # Disable Horizontal Pod Autoscaler
+
+  probes:
+    liveness:
+      path: "/health"  # Liveness probe endpoint
+      initialDelaySeconds: 5  # Delay before first check
+      periodSeconds: 10  # Check interval
+    readiness:
+      path: "/health"  # Readiness probe endpoint
+      initialDelaySeconds: 3  # Delay before first check
+      periodSeconds: 5  # Check interval
+
+  configMap:
+    enabled: true  # Control whether to create the ConfigMap
+    data:
+      inject.sh: |
+        #!/bin/sh
+        POD_NAME=$HOSTNAME
+        POD_IP=$(hostname -i)
+        cat > /usr/share/nginx/html/index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pod Info</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .info { background: #f0f0f0; padding: 20px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="info">
+                <h1>Pod Information</h1>
+                <p><strong>Pod Name:</strong> $POD_NAME</p>
+                <p><strong>Pod IP:</strong> $POD_IP</p>
+                <p><strong>Time:</strong> $(date)</p>
+            </div>
+        </body>
+        </html>
+        EOF
+        nginx -g "daemon off;"
+      
+      default.conf: |
+        server {
+            listen       80;
+            server_name  localhost;
+
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+            }
+        }
