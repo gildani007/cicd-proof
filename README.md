@@ -53,7 +53,7 @@ The **Helm charts** are located under the charts/ directory.
 The chart used in this project deploys an NGINX-based web application and includes the following components:
 1. **Deployment** – Contains **livenessProbe** and **readinessProbe** to ensure the service does not send requests to a pod that cannot respond. It also includes **topologySpreadConstraints** to distribute pods across different nodes, preventing them from running on the same node.
 2. **Service** – Configurable to work with either **NodePort** or **ClusterIP**.
-3. **Ingress** – Exposes the application via an HTTP endpoint. Use **round_robin** for the load balancing and healthcheck to check to which pods to direct th requests.
+3. **Ingress** – Exposes the application via an HTTP endpoint. Use **round_robin** for the load balancing and healthcheck to check to which pods to direct the requests.
 4. **HPA (Horizontal Pod Autoscaler)** – Enables CPU-based autoscaling to dynamically adjust the number of pods based on workload demand.
 5. **ConfigMap** - Contains the nginx configuration, and the inject.sh script that creates the index.html.
 
