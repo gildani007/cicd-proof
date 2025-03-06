@@ -6,17 +6,9 @@ terraform {
       source  = "hashicorp/helm"
       version = ">= 2.17.0"  # Set your required minimum version
     }
-  }
-}
-
-provider "kubernetes" {
-  config_path    = "~/.kube/config"
-  config_context = "minikube"
-}
-
-provider "helm" {
-  kubernetes {
-    config_path    = "~/.kube/config"
-    config_context = "minikube"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.0.0"  # Set appropriate version
+    }
   }
 }
